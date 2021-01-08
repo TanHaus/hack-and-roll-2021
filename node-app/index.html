@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Socket.IO chat</title>
+  </head>
+  <body>
+    <div id="data"></div>
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script>
+      var socket = io();
+
+      const dataEl = document.getElementById('data');
+
+      socket.on('data', data => {
+        dataEl.textContent = data;
+      });
+    </script>
+  </body>
+</html>

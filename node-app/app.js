@@ -2,12 +2,19 @@ const express = require('express');
 const app = express();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
+const port = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+function sleep(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}  
+
 app.get('/', (req, res) => {
-  return res.send("hello world")
+  res.sendFile(__dirname + '/index.html');
 });
 
 app.post('/', (req, res) => {
@@ -16,16 +23,25 @@ app.post('/', (req, res) => {
   return res.json(body);
 })
 
-io.on('connection', (socket) => {
-  console.log('a user connected');
+io.on('connection', async (socket) => {
+  console.log('A user connected');
+
   socket.on('disconnect', () => {
-    console.log('user disconnected');
+    console.log('User disconnected');
   });
+
+  // let i = 0;
+  // while (true) {
+  //   io.emit('data', i++);
+  //   await sleep(1000);
+  // }
+  
   socket.on('reading', (data) => {
     console.log('reading: ' + data);
+    io.emit('data', data);
   });
 });
 
-http.listen(3000, () => {
-  console.log('listening on *:3000');
+http.listen(port, () => {
+  console.log(`Server running at http://localhost:${port}/`);
 });
