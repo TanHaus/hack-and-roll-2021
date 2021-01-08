@@ -28,6 +28,8 @@
 
       var socket = io();
 
+      socket.emit('client');
+
       const dataEl = document.getElementById('data');
 
       socket.on('data', data => {
