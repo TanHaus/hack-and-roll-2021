@@ -7,11 +7,7 @@ const port = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-function sleep(ms) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-}  
+app.use("/", express.static('public'));
 
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html');
@@ -31,9 +27,13 @@ io.on('connection', async (socket) => {
     console.log('User disconnected');
   });
 
+  socket.on('client', () => {
+    socket.join('client');
+  })
+
   socket.on('sensor', (payload) => {
     console.log(payload)
-    io.emit('data', payload)
+    io.to('client').emit('data', payload)
   })
 });
 
