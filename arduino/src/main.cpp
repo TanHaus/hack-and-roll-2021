@@ -9,8 +9,8 @@
 #include "helper.h"
 
 // Wifi credientials
-const char* ssid = "TanHaus";
-const char* password = "12345678";
+const char* ssid = "Camus";
+const char* password = "godisdead";
 
 // server settings
 const char* server_ip = "192.168.137.247";
@@ -37,6 +37,9 @@ VectorInt16 aa;         // [x, y, z]            accel sensor measurements
 VectorInt16 aaReal;     // [x, y, z]            gravity-free accel sensor measurements
 VectorInt16 aaWorld;    // [x, y, z]            world-frame accel sensor measurements
 VectorFloat gravity;    // [x, y, z]            gravity vector
+
+const float alpha = 0.8;
+float smooth_data[7];
 
 #define OUTPUT_READABLE_QUATERNION
 // #define OUTPUT_READABLE_EULER
@@ -180,14 +183,22 @@ void send_sensor_data() {
   JsonObject data = array.createNestedObject();
   String payload;
 
-  data["aX"] = aaWorld.x;
-  data["aY"] = aaWorld.y;
-  data["aZ"] = aaWorld.z;
-  data["qW"] = q.w;
-  data["qX"] = q.x;
-  data["qY"] = q.y;
-  data["qZ"] = q.z;
+  // data["aX"] = aaWorld.x;
+  // data["aY"] = aaWorld.y;
+  // data["aZ"] = aaWorld.z;
+  // data["qW"] = q.w;
+  // data["qX"] = q.x;
+  // data["qY"] = q.y;
+  // data["qZ"] = q.z;
   
+  data["aX"] = smooth_data[0];
+  data["aY"] = smooth_data[1];
+  data["aZ"] = smooth_data[2];
+  data["qW"] = smooth_data[3];
+  data["qX"] = smooth_data[4];
+  data["qY"] = smooth_data[5];
+  data["qZ"] = smooth_data[6];
+
   serializeJson(doc, payload);
 
   // send_data(payload, url);
@@ -320,6 +331,15 @@ void mpu_loop()
     Serial.println(aaWorld.z);
 #endif
 #endif
+    
+    // exponential smoothing
+    smooth_data[0] = smooth_data[0]*(1-alpha) + aaWorld.x*alpha;
+    smooth_data[1] = smooth_data[1]*(1-alpha) + aaWorld.y*alpha;
+    smooth_data[2] = smooth_data[2]*(1-alpha) + aaWorld.z*alpha;
+    smooth_data[3] = smooth_data[3]*(1-alpha) + q.w*alpha;
+    smooth_data[4] = smooth_data[4]*(1-alpha) + q.x*alpha;
+    smooth_data[5] = smooth_data[5]*(1-alpha) + q.y*alpha;
+    smooth_data[6] = smooth_data[6]*(1-alpha) + q.z*alpha;
     send_sensor_data();
   }
 }
