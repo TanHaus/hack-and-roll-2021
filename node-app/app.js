@@ -20,6 +20,7 @@ app.get('/', (req, res) => {
 app.post('/', (req, res) => {
   const body = req.body;
   console.log(body);
+  io.emit('data', body);
   return res.json(body);
 })
 
@@ -28,17 +29,6 @@ io.on('connection', async (socket) => {
 
   socket.on('disconnect', () => {
     console.log('User disconnected');
-  });
-
-  // let i = 0;
-  // while (true) {
-  //   io.emit('data', i++);
-  //   await sleep(1000);
-  // }
-  
-  socket.on('reading', (data) => {
-    console.log('reading: ' + data);
-    io.emit('data', data);
   });
 });
 
