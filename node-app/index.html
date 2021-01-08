@@ -27,11 +27,13 @@
 
       var socket = io();
 
+      socket.emit('client');
+
       const dataEl = document.getElementById('data');
 
       socket.on('data', data => {
         dataEl.textContent = JSON.stringify(data);
-        readings.append(data);
+        readings.push(data);
       });
     </script>
   </body>
