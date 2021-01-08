@@ -9,8 +9,8 @@
 #include "helper.h"
 
 // Wifi credientials
-const char* ssid = "Camus";
-const char* password = "godisdead";
+const char* ssid = "TanHaus";
+const char* password = "12345678";
 
 // server settings
 const char* server_ip = "192.168.137.247";
