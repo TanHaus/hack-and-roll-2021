@@ -57,6 +57,9 @@ function draw() {
 	rotateY(frameCount*.004);
 	if (frameCount % 360 === 60) rootNode.stimulate();
 	rootNode.draw();
-	
-	console.log(readings);
+}
+
+function updateMusic(data) {
+	// update music with new data
+	console.log(data);
 }
