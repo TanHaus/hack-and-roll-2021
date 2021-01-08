@@ -18,6 +18,7 @@
     <script src="/socket.io/socket.io.js"></script>
 
     <script>
+      let readings = []
       const musicBtn = document.getElementById('music-button');
       musicBtn.addEventListener("click", () => {
         Tone.start();
@@ -30,6 +31,7 @@
 
       socket.on('data', data => {
         dataEl.textContent = JSON.stringify(data);
+        readings.append(data);
       });
     </script>
   </body>
