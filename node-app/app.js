@@ -30,6 +30,11 @@ io.on('connection', async (socket) => {
   socket.on('disconnect', () => {
     console.log('User disconnected');
   });
+
+  socket.on('sensor', (payload) => {
+    console.log(payload)
+    io.emit('data', payload)
+  })
 });
 
 http.listen(port, () => {
