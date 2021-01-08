@@ -5,37 +5,14 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.2/p5.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.2/addons/p5.dom.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/freshfork/p5.EasyCam@1.0.10/p5.easycam.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.75/Tone.js"></script>
-    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.5/socket.io.js"></script> -->
-
+    <script src="js/p5.sound.min.js"></script>
   </head>
   <body>
-    
+    <button id="button"></button>
+    <script src="js/Node.js"></script>
+    <script src="js/sketch.js"></script>
     <div id="data"></div>
-    <button id="music-button">start</button>
-    <script src="./js/Node.js"></script>
-    <script src="./js/sketch.js"></script>
-    <script src="/socket.io/socket.io.js"></script>
-
     <script>
-
-
-      const musicBtn = document.getElementById('music-button');
-      musicBtn.addEventListener("click", () => {
-        Tone.start();
-        Tone.Transport.start();
-      })
-
-      var socket = io();
-
-      socket.emit('client');
-
-      const dataEl = document.getElementById('data');
-
-      socket.on('data', data => {
-        dataEl.textContent = JSON.stringify(data);
-        updateMusic(data)
-      });
     </script>
   </body>
 </html>
