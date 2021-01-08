@@ -132,10 +132,10 @@ void mpu_setup()
   devStatus = mpu.dmpInitialize();
 
   // supply your own gyro offsets here, scaled for min sensitivity
-  // mpu.setXGyroOffset(220);
-  // mpu.setYGyroOffset(76);
-  // mpu.setZGyroOffset(-85);
-  // mpu.setZAccelOffset(1788); // 1688 factory default for my test chip
+  mpu.setXGyroOffset(220);
+  mpu.setYGyroOffset(76);
+  mpu.setZGyroOffset(-85);
+  mpu.setZAccelOffset(1788); // 1688 factory default for my test chip
 
   // make sure it worked (returns 0 if so)
   if (devStatus == 0) {
@@ -241,19 +241,20 @@ void mpu_loop()
     // display real acceleration, adjusted to remove gravity
     mpu.dmpGetQuaternion(&q, fifoBuffer);
     mpu.dmpGetAccel(&aa, fifoBuffer);
-    // mpu.dmpGetGravity(&gravity, &q);
-    // mpu.dmpGetLinearAccel(&aaReal, &aa, &gravity);
-    Serial.print("aa\t");
-    Serial.print(aa.x/16384.);
-    Serial.print("\t");
-    Serial.print(aa.y/16384.);
-    Serial.print("\t");
-    Serial.println(aa.z/16384.);
+    mpu.dmpGetGravity(&gravity, &q);
+    mpu.dmpGetLinearAccel(&aaReal, &aa, &gravity);
+    mpu.dmpGetLinearAccelInWorld(&aaWorld, &aaReal, &q);
+    // Serial.print("aa\t");
+    // Serial.print(aa.x/16384.);
+    // Serial.print("\t");
+    // Serial.print(aa.y/16384.);
+    // Serial.print("\t");
+    // Serial.println(aa.z/16384.);
     
     // exponential smoothing
-    smooth_data[0] = smooth_data[0]*(1-alpha) + aa.x*alpha;
-    smooth_data[1] = smooth_data[1]*(1-alpha) + aa.y*alpha;
-    smooth_data[2] = smooth_data[2]*(1-alpha) + aa.z*alpha;
+    smooth_data[0] = smooth_data[0]*(1-alpha) + aaWorld.x*alpha;
+    smooth_data[1] = smooth_data[1]*(1-alpha) + aaWorld.y*alpha;
+    smooth_data[2] = smooth_data[2]*(1-alpha) + aaWorld.z*alpha;
     smooth_data[3] = smooth_data[3]*(1-alpha) + euler[0]*alpha;
     smooth_data[4] = smooth_data[4]*(1-alpha) + euler[1]*alpha;
     smooth_data[5] = smooth_data[5]*(1-alpha) + euler[2]*alpha;
