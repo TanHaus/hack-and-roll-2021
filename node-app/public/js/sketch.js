@@ -117,44 +117,44 @@ function draw() {
 
   const dim = Math.min(width, height);
 	
-	  // Black background
-		background(0);
+	// Black background
+	background(0);
 
-		strokeWeight(dim * 0.0175);
-		stroke(255);
-		noFill();
-	
-		// Update the analyser
-		analyser.update(deltaTime);
-	
-		// Draw FFT values
-		strokeWeight(dim * 0.0025);
-		// stroke(255);
-		stroke(gA*255, gB*255, gC*255);
-		// fill(< 30 ? 255 * Math.pow(1.1, -t) : 0);
-	
-		beginShape();
-		const energies = analyser.getEnergyBins();
-	
-		for (let i = 0; i < energies.length; i++) {
-			const energy = energies[i];
-			const x = map(i, 0, energies.length - 1, 0, width);
-			const offset = map(energy, -100, -30, 0, 1);
-			const y = height - offset * height;
-			vertex(x, y);
-		}
-		endShape();
-	
-		// Draw a 'play' or 'stop' button
-		noStroke();
-		fill(255);
-		polygon(
-			width / 2,
-			height / 2,
-			dim * 0.1,
-			playing ? 4 : 3,
-			playing ? PI / 4 : 0
-		);
+	strokeWeight(dim * 0.0175);
+	stroke(255);
+	noFill();
+
+	// Update the analyser
+	analyser.update(deltaTime);
+
+	// Draw FFT values
+	strokeWeight(dim * 0.0025);
+	// stroke(255);
+	stroke(gA*255, gB*255, gC*255);
+	// fill(< 30 ? 255 * Math.pow(1.1, -t) : 0);
+
+	beginShape();
+	const energies = analyser.getEnergyBins();
+
+	for (let i = 0; i < energies.length; i++) {
+		const energy = energies[i];
+		const x = map(i, 0, energies.length - 1, 0, width);
+		const offset = map(energy, -100, -30, 0, 1);
+		const y = height - offset * height;
+		vertex(x, y);
+	}
+	endShape();
+
+	// Draw a 'play' or 'stop' button
+	// noStroke();
+	// fill(255);
+	// polygon(
+	// 	width / 2,
+	// 	height / 2,
+	// 	dim * 0.1,
+	// 	playing ? 4 : 3,
+	// 	playing ? PI / 4 : 0
+	// );
 		
 }
 
