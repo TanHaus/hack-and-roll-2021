@@ -13,9 +13,9 @@ const char* ssid = "TanHaus";
 const char* password = "12345678";
 
 // server settings
-const char* server_ip = "192.168.137.247";
+const char* server_ip = "192.168.137.1";
 const int port = 3000;
-const char* url = "http://192.168.137.77:3000/";
+const char* url = "http://192.168.137.1:3000/";
 // const char* server_ip = "hack-and-roll-2021.herokuapp.com";
 // const int port = 80;
 // const char* url = "http://hack-and-roll-2021.herokuapp.com/";
@@ -38,21 +38,14 @@ VectorInt16 aaReal;     // [x, y, z]            gravity-free accel sensor measur
 VectorInt16 aaWorld;    // [x, y, z]            world-frame accel sensor measurements
 VectorFloat gravity;    // [x, y, z]            gravity vector
 
-const float alpha = 0.8;
-float smooth_data[7];
-
-#define OUTPUT_READABLE_QUATERNION
-// #define OUTPUT_READABLE_EULER
-// #define OUTPUT_READABLE_YAWPITCHROLL
-// #define OUTPUT_READABLE_REALACCEL
-#define OUTPUT_READABLE_WORLDACCEL
-// #define OUTPUT_TEAPOT_OSC
+const float alpha = 0.9;
+float smooth_data[6];
+unsigned long last_time;
 
 float euler[3];
 #define INTERRUPT_PIN 18
 
 volatile bool mpuInterrupt = false;     // indicates whether MPU interrupt pin has gone high
-
 
 void socketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length);
 void mpu_setup();
@@ -72,6 +65,7 @@ void setup() {
   Serial.println();
 
   mpu_setup();
+  last_time = millis();
 }
 
 void loop() {
@@ -141,7 +135,7 @@ void mpu_setup()
   mpu.setXGyroOffset(220);
   mpu.setYGyroOffset(76);
   mpu.setZGyroOffset(-85);
-  mpu.setZAccelOffset(1688); // 1688 factory default for my test chip
+  mpu.setZAccelOffset(1788); // 1688 factory default for my test chip
 
   // make sure it worked (returns 0 if so)
   if (devStatus == 0) {
@@ -183,21 +177,13 @@ void send_sensor_data() {
   JsonObject data = array.createNestedObject();
   String payload;
 
-  // data["aX"] = aaWorld.x;
-  // data["aY"] = aaWorld.y;
-  // data["aZ"] = aaWorld.z;
-  // data["qW"] = q.w;
-  // data["qX"] = q.x;
-  // data["qY"] = q.y;
-  // data["qZ"] = q.z;
-  
-  data["aX"] = smooth_data[0];
-  data["aY"] = smooth_data[1];
-  data["aZ"] = smooth_data[2];
-  data["qW"] = smooth_data[3];
-  data["qX"] = smooth_data[4];
-  data["qY"] = smooth_data[5];
-  data["qZ"] = smooth_data[6];
+  data["timestamp"] = last_time;
+  data["aX"] = smooth_data[0]/16384.;
+  data["aY"] = smooth_data[1]/16384.;
+  data["aZ"] = smooth_data[2]/16384.;
+  data["gX"] = smooth_data[3];
+  data["gY"] = smooth_data[4];
+  data["gZ"] = smooth_data[5];
 
   serializeJson(doc, payload);
 
@@ -239,107 +225,43 @@ void mpu_loop()
     // (this lets us immediately read more without waiting for an interrupt)
     fifoCount -= packetSize;
 
-#ifdef OUTPUT_READABLE_QUATERNION
-    // display quaternion values in easy matrix form: w x y z
-    mpu.dmpGetQuaternion(&q, fifoBuffer);
-#ifdef DEBUG
-    Serial.print("quat\t");
-    Serial.print(q.w);
-    Serial.print("\t");
-    Serial.print(q.x);
-    Serial.print("\t");
-    Serial.print(q.y);
-    Serial.print("\t");
-    Serial.println(q.z);
-#endif
-#endif
 
-#ifdef OUTPUT_TEAPOT_OSC
-#ifndef OUTPUT_READABLE_QUATERNION
-    // display quaternion values in easy matrix form: w x y z
-    mpu.dmpGetQuaternion(&q, fifoBuffer);
-#endif
-    // Send OSC message
-    OSCMessage msg("/imuquat");
-    msg.add((float)q.w);
-    msg.add((float)q.x);
-    msg.add((float)q.y);
-    msg.add((float)q.z);
-
-    Udp.beginPacket(outIp, outPort);
-    msg.send(Udp);
-    Udp.endPacket();
-
-    msg.empty();
-#endif
-
-#ifdef OUTPUT_READABLE_EULER
     // display Euler angles in degrees
     mpu.dmpGetQuaternion(&q, fifoBuffer);
     mpu.dmpGetEuler(euler, &q);
 #ifdef DEBUG
-    Serial.print("euler\t");
-    Serial.print(euler[0] * 180/M_PI);
-    Serial.print("\t");
-    Serial.print(euler[1] * 180/M_PI);
-    Serial.print("\t");
-    Serial.println(euler[2] * 180/M_PI);
-#endif
-#endif
-
-#ifdef OUTPUT_READABLE_YAWPITCHROLL
-    // display Euler angles in degrees
-    mpu.dmpGetQuaternion(&q, fifoBuffer);
-    mpu.dmpGetGravity(&gravity, &q);
-    mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
-    Serial.print("ypr\t");
-    Serial.print(ypr[0] * 180/M_PI);
-    Serial.print("\t");
-    Serial.print(ypr[1] * 180/M_PI);
-    Serial.print("\t");
-    Serial.println(ypr[2] * 180/M_PI);
+    // Serial.print("euler\t");
+    // Serial.print(euler[0] * 180/M_PI);
+    // Serial.print("\t");
+    // Serial.print(euler[1] * 180/M_PI);
+    // Serial.print("\t");
+    // Serial.println(euler[2] * 180/M_PI);
 #endif
 
-#ifdef OUTPUT_READABLE_REALACCEL
     // display real acceleration, adjusted to remove gravity
     mpu.dmpGetQuaternion(&q, fifoBuffer);
     mpu.dmpGetAccel(&aa, fifoBuffer);
     mpu.dmpGetGravity(&gravity, &q);
     mpu.dmpGetLinearAccel(&aaReal, &aa, &gravity);
-    Serial.print("areal\t");
-    Serial.print(aaReal.x);
-    Serial.print("\t");
-    Serial.print(aaReal.y);
-    Serial.print("\t");
-    Serial.println(aaReal.z);
-#endif
-
-#ifdef OUTPUT_READABLE_WORLDACCEL
-    // display initial world-frame acceleration, adjusted to remove gravity
-    // and rotated based on known orientation from quaternion
-    mpu.dmpGetQuaternion(&q, fifoBuffer);
-    mpu.dmpGetAccel(&aa, fifoBuffer);
-    mpu.dmpGetGravity(&gravity, &q);
-    mpu.dmpGetLinearAccel(&aaReal, &aa, &gravity);
     mpu.dmpGetLinearAccelInWorld(&aaWorld, &aaReal, &q);
-#ifdef DEBUG
-    Serial.print("aworld\t");
-    Serial.print(aaWorld.x);
-    Serial.print("\t");
-    Serial.print(aaWorld.y);
-    Serial.print("\t");
-    Serial.println(aaWorld.z);
-#endif
-#endif
+    // Serial.print("aa\t");
+    // Serial.print(aa.x/16384.);
+    // Serial.print("\t");
+    // Serial.print(aa.y/16384.);
+    // Serial.print("\t");
+    // Serial.println(aa.z/16384.);
     
     // exponential smoothing
     smooth_data[0] = smooth_data[0]*(1-alpha) + aaWorld.x*alpha;
     smooth_data[1] = smooth_data[1]*(1-alpha) + aaWorld.y*alpha;
     smooth_data[2] = smooth_data[2]*(1-alpha) + aaWorld.z*alpha;
-    smooth_data[3] = smooth_data[3]*(1-alpha) + q.w*alpha;
-    smooth_data[4] = smooth_data[4]*(1-alpha) + q.x*alpha;
-    smooth_data[5] = smooth_data[5]*(1-alpha) + q.y*alpha;
-    smooth_data[6] = smooth_data[6]*(1-alpha) + q.z*alpha;
-    send_sensor_data();
+    smooth_data[3] = smooth_data[3]*(1-alpha) + euler[0]*alpha;
+    smooth_data[4] = smooth_data[4]*(1-alpha) + euler[1]*alpha;
+    smooth_data[5] = smooth_data[5]*(1-alpha) + euler[2]*alpha;
+    unsigned long current = millis();
+    if (current - last_time > 100) {
+      last_time = current;
+      send_sensor_data();
+    }
   }
 }

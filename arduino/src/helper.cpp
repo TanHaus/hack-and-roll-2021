@@ -8,11 +8,17 @@ void setup_wifi(const char* ssid, const char* password) {
   Serial.print("Connecting to ");
   Serial.println(ssid);
   WiFi.begin(ssid, password);
- 
+  pinMode(2, OUTPUT);
+
   while (WiFi.status() != WL_CONNECTED) {
-    delay(1000);
+    // delay(1000);
+    digitalWrite(2, HIGH);
+    delay(500);
+    digitalWrite(2, LOW);
+    delay(500);
     Serial.print(".");
   }
+  digitalWrite(2, HIGH);
 
   Serial.println("\nConnected to wifi");
   Serial.print("IP address: ");
